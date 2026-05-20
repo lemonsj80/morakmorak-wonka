@@ -989,28 +989,9 @@ function exportImage(){
     }
     ctx.textAlign='left';
     y+=bh+16;
-
-    // 블록2: 권장 판매가 (4칸 가로)
-    const cw=(544-24)/4;
-    const cx=[pad, pad+cw+8, pad+(cw+8)*2, pad+(cw+8)*3];
-    ctx.font='600 12px system-ui';ctx.fillStyle='#555';ctx.fillText('권장 판매가 (원가율별)',pad,y);
-    y+=14;
-    [20,25,30,35].forEach((r,i)=>{
-      const sp=Math.round(perCost/(r/100));
-      const pf2=sp-Math.round(perCost);
-      ctx.fillStyle='#f0fff4';ctx.beginPath();ctx.roundRect(cx[i],y,cw,68,8);ctx.fill();
-      ctx.font='500 11px system-ui';ctx.fillStyle='#888';ctx.textAlign='center';
-      ctx.fillText('원가율 '+r+'%',cx[i]+cw/2,y+18);
-      ctx.font='700 15px system-ui';ctx.fillStyle='#0f6e56';
-      ctx.fillText(sp.toLocaleString()+'원',cx[i]+cw/2,y+42);
-      ctx.font='400 11px system-ui';ctx.fillStyle='#aaa';
-      ctx.fillText('순이익 '+pf2.toLocaleString()+'원',cx[i]+cw/2,y+60);
-    });
-    ctx.textAlign='left';
-    y+=68+16;
   }
   if(count>0&&price>0){
-    // 블록3: 실제 판매가 분석 (파란 박스, 크게)
+    // 블록2: 실제 판매가 분석 (파란 박스, 크게)
     const pf=price-Math.round(perCost);
     const cr=((perCost/price)*100).toFixed(1);
     const tp=pf*count;
@@ -1019,7 +1000,6 @@ function exportImage(){
     ctx.strokeStyle='#185fa5';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(pad,y,544,bh2,10);ctx.stroke();
     ctx.font='700 14px system-ui';ctx.fillStyle='#185fa5';
     ctx.fillText('💰 실제 판매가 분석  —  '+price.toLocaleString()+'원/개',pad+16,y+26);
-    // 4칸 그리드
     const iw=(544-40)/2;
     const ix=[pad+12, pad+12+iw+16];
     const iy=[y+44, y+44+64];
@@ -1037,6 +1017,26 @@ function exportImage(){
     }
     ctx.textAlign='left';
     y+=bh2+16;
+  }
+  if(count>0){
+    // 블록3: 권장 판매가 (4칸 가로)
+    const cw=(544-24)/4;
+    const cx=[pad, pad+cw+8, pad+(cw+8)*2, pad+(cw+8)*3];
+    ctx.font='600 12px system-ui';ctx.fillStyle='#555';ctx.fillText('권장 판매가 (원가율별)',pad,y);
+    y+=14;
+    [20,25,30,35].forEach((r,i)=>{
+      const sp=Math.round(perCost/(r/100));
+      const pf2=sp-Math.round(perCost);
+      ctx.fillStyle='#f0fff4';ctx.beginPath();ctx.roundRect(cx[i],y,cw,68,8);ctx.fill();
+      ctx.font='500 11px system-ui';ctx.fillStyle='#888';ctx.textAlign='center';
+      ctx.fillText('원가율 '+r+'%',cx[i]+cw/2,y+18);
+      ctx.font='700 15px system-ui';ctx.fillStyle='#0f6e56';
+      ctx.fillText(sp.toLocaleString()+'원',cx[i]+cw/2,y+42);
+      ctx.font='400 11px system-ui';ctx.fillStyle='#aaa';
+      ctx.fillText('순이익 '+pf2.toLocaleString()+'원',cx[i]+cw/2,y+60);
+    });
+    ctx.textAlign='left';
+    y+=68+16;
   }
   const a=document.createElement('a');a.download=menu.name+'_원가계산서.png';a.href=cv.toDataURL('image/png');a.click();
 }
