@@ -35,7 +35,7 @@ input:focus,select:focus{border-color:#1a1a1a}
 .ingredient-item{display:flex;align-items:center;gap:8px;padding:11px 14px;background:#f9f9f7;border-radius:10px;font-size:13px;margin-bottom:8px;flex-wrap:wrap}
 .ingredient-item .name{font-weight:600;flex:1.5;min-width:80px}
 .ingredient-item .info{color:#888;flex:2;font-size:12px}
-.menu-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f9f9f7;border-radius:10px;font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:8px;border:1px solid transparent}
+.menu-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f9f9f7;border-radius:10px;font-size:13px;cursor:pointer;transition:all .15s;margin-bottom:8px;border:1px solid transparent;word-break:keep-all;overflow-wrap:break-word}
 .menu-item:hover{background:#fff;border-color:#ddd}
 .menu-item.selected{background:#fff;border-color:#1a1a1a}
 .stat-card{background:#f9f9f7;border-radius:10px;padding:14px;text-align:center}
@@ -811,8 +811,7 @@ function renderMenus(){
         <span style="font-size:11px;background:#f0f0ee;color:#888;padding:2px 8px;border-radius:20px">${catEmoji[m.category||'떡']} ${m.category||'떡'}</span>
         ${isMine?'<span class="mine-badge">내 메뉴</span>':'<span class="others-badge">👀 보기만</span>'}
         <span style="color:#aaa;font-size:12px">${Math.round(menuCost(m)).toLocaleString()}원</span>
-        ${isMine?`<button class="btn btn-sm" onclick="toggleInlineMenuForm(${m.id});event.stopPropagation()">수정</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteMenu(${m.id});event.stopPropagation()" style="margin-left:4px">삭제</button>`:''}
+        ${isMine?`<button class="btn btn-sm" onclick="toggleInlineMenuForm(${m.id});event.stopPropagation()">수정</button>`:''}
       </div>
       ${isMine?`<div id="menu-inline-form-${m.id}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0ee">
         <div class="form-row">
@@ -843,9 +842,12 @@ function renderMenus(){
           <label style="font-size:12px;color:#888;font-weight:500;display:block;margin-bottom:4px">특이사항 (메모)</label>
           <textarea id="menu-edit-memo-${m.id}" placeholder="예) 100g 기준 5개" style="width:100%;padding:9px 12px;font-size:13px;border:1px solid #e0e0de;border-radius:8px;resize:vertical;min-height:50px;font-family:inherit">${m.memo||''}</textarea>
         </div>
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button class="btn btn-sm" onclick="toggleInlineMenuForm(${m.id})">취소</button>
-          <button class="btn btn-primary btn-sm" onclick="saveInlineMenu(${m.id})">저장</button>
+        <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
+          <button class="btn btn-sm btn-danger" onclick="deleteMenu(${m.id})">🗑 삭제</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm" onclick="toggleInlineMenuForm(${m.id})">취소</button>
+            <button class="btn btn-primary btn-sm" onclick="saveInlineMenu(${m.id})">저장</button>
+          </div>
         </div>
       </div>`:''}
     </div>`;
