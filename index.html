@@ -299,6 +299,7 @@ canvas{display:none}
               <div style="font-size:15px;font-weight:700" id="calc-title"></div>
             </div>
             <button class="btn btn-sm" onclick="exportImage()">⬇ 이미지 저장</button>
+            <button class="btn btn-sm" onclick="exportExcel()" style="margin-left:6px">📊 엑셀 저장</button>
           </div>
           <div id="calc-summary"></div>
           <div class="divider"></div>
@@ -930,6 +931,63 @@ function recalc(){
         <div class="stat-card"><div class="stat-label">총 매출</div><div class="stat-value blue">${(price*count).toLocaleString()}원</div></div>
       </div></div>`;
   } else act.style.display='none';
+}
+
+function exportExcel(){
+  const menu=menus.find(m=>m.id===selMenuId);if(!menu)return;
+  const total=menuCost(menu);
+  const count=parseFloat(document.getElementById('calc-count').dataset.val)||0;
+  const price=parseFloat(document.getElementById('calc-price').dataset.val)||0;
+  const perCost=count>0?total/count:0;
+
+  let csv='\uFEFF'; // BOM for Korean
+  csv+='메뉴명,'+menu.name+'\n';
+  csv+='날짜,'+new Date().toLocaleDateString('ko-KR')+'\n';
+  csv+='\n';
+  csv+='재료명,분량,단위,단가(원),금액(원)\n';
+
+  (menu.recipe||[]).forEach(r=>{
+    const i=ingredients.find(x=>x.id===r.ingId);if(!i)return;
+    const unitCost=(i.buy_price/i.buy_qty).toFixed(2);
+    const lineCost=Math.round((i.buy_price/i.buy_qty)*r.qty);
+    csv+=i.name+','+r.qty+','+i.unit+','+unitCost+','+lineCost+'\n';
+  });
+
+  csv+='\n';
+  csv+='총 원재료비,,,,'+Math.round(total)+'\n';
+
+  if(count>0){
+    csv+='\n';
+    csv+='생산 개수,'+count+'개\n';
+    csv+='개당 원가,,,,'+Math.round(perCost)+'\n';
+    csv+='\n';
+    csv+='원가율별 권장 판매가\n';
+    csv+='원가율,권장 판매가(원),순이익(원)\n';
+    [20,25,30,35].forEach(r=>{
+      const sp=Math.round(perCost/(r/100));
+      const pf=sp-Math.round(perCost);
+      csv+=r+'%,'+sp+','+pf+'\n';
+    });
+  }
+
+  if(count>0&&price>0){
+    const cr=((perCost/price)*100).toFixed(1);
+    const pf=price-Math.round(perCost);
+    const tp=pf*count;
+    csv+='\n';
+    csv+='실제 판매가 분석\n';
+    csv+='실제 판매가(원),'+price+'\n';
+    csv+='실제 원가율,'+cr+'%\n';
+    csv+='개당 순이익(원),'+pf+'\n';
+    csv+='총 순이익(원),'+tp+'\n';
+    csv+='총 매출(원),'+price*count+'\n';
+  }
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=menu.name+'_원가계산.csv';
+  a.click();
 }
 
 function exportImage(){
