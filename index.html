@@ -327,6 +327,22 @@ let ingCat = '전체';
 let ingSort = false;   // false=기본순, true=가나다순
 let menuSort = false;
 
+function toggleInlineIngForm(id){
+  const form=document.getElementById('ing-inline-form-'+id);
+  form.style.display=form.style.display==='none'?'block':'none';
+}
+
+async function saveInlineIng(id){
+  const name=document.getElementById('ing-edit-name-'+id).value.trim();
+  const unit=document.getElementById('ing-edit-unit-'+id).value;
+  const qty=parseFloat(document.getElementById('ing-edit-qty-'+id).value);
+  const price=parseFloat(document.getElementById('ing-edit-price-'+id).value);
+  const category=document.getElementById('ing-edit-cat-'+id).value;
+  if(!name||isNaN(qty)||isNaN(price)||qty<=0||price<=0){alert('모든 항목을 입력해주세요.');return;}
+  await sb.from('ingredients').update({name,unit,buy_qty:qty,buy_price:price,category}).eq('id',id);
+  await loadIngredients();
+}
+
 function toggleIngSort(){
   ingSort=!ingSort;
   document.getElementById('ing-sort-btn').textContent=ingSort?'가나다 ↓':'가나다 ↑';
@@ -481,18 +497,57 @@ function renderIngredients(){
   // 카테고리별 그룹핑
   const catsOrder=['가루','곡류','당류','견과/씨앗','유지','오일','앙금류','과일/채소','한약재/향신료','포장재','기타'];
   const catEmoji={'가루':'🌾','곡류':'🌾','당류':'🍯','견과/씨앗':'🥜','유지':'🧈','오일':'🫙','앙금류':'🟤','과일/채소':'🥦','한약재/향신료':'🌿','포장재':'📦','기타':'📌'};
-  if(ingCat!=='전체'){
-    el.innerHTML=list.map(i=>{
-      const up=(i.buy_price/i.buy_qty).toFixed(2);
-      return `<div class="ingredient-item">
-        <span class="name">${i.name}</span>
-        <span class="info">${i.buy_qty.toLocaleString()}${i.unit} / ${i.buy_price.toLocaleString()}원
+  function ingItemHTML(i){
+    const up=(i.buy_price/i.buy_qty).toFixed(2);
+    const cat=getIngCatName(i.name,i.category);
+    const catOpts=['가루','곡류','당류','견과/씨앗','유지','오일','앙금류','과일/채소','한약재/향신료','포장재','기타']
+      .map(c=>`<option value="${c}" ${cat===c?'selected':''}>${c}</option>`).join('');
+    const units=['g','kg','ml','L','개','장','봉','컵','T','t']
+      .map(u=>`<option value="${u}" ${i.unit===u?'selected':''}>${u}</option>`).join('');
+    return `<div class="ingredient-item" id="ing-item-${i.id}" style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="name" style="flex:1.5">${i.name}</span>
+        <span class="info" style="flex:2;font-size:12px;color:#888">${i.buy_qty.toLocaleString()}${i.unit} / ${i.buy_price.toLocaleString()}원
           <span class="badge badge-blue" style="margin-left:4px">${up}원/${i.unit}</span>
         </span>
-        <button class="btn btn-sm" onclick="toggleIngForm(${i.id})" style="margin-right:4px">수정</button>
+        <button class="btn btn-sm" onclick="toggleInlineIngForm(${i.id})" style="margin-right:4px">수정</button>
         <button class="btn btn-sm btn-danger" onclick="deleteIngredient(${i.id})">삭제</button>
-      </div>`;
-    }).join('');
+      </div>
+      <div id="ing-inline-form-${i.id}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #f0f0ee">
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>재료명</label>
+            <input id="ing-edit-name-${i.id}" type="text" value="${i.name}">
+          </div>
+          <div class="form-group">
+            <label>단위</label>
+            <select id="ing-edit-unit-${i.id}">${units}</select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>구매 수량</label>
+            <input id="ing-edit-qty-${i.id}" type="number" value="${i.buy_qty}" min="0" step="any">
+          </div>
+          <div class="form-group">
+            <label>구매 금액 (원)</label>
+            <input id="ing-edit-price-${i.id}" type="number" value="${i.buy_price}" min="0">
+          </div>
+          <div class="form-group">
+            <label>카테고리</label>
+            <select id="ing-edit-cat-${i.id}">${catOpts}</select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn btn-sm" onclick="toggleInlineIngForm(${i.id})">취소</button>
+          <button class="btn btn-primary btn-sm" onclick="saveInlineIng(${i.id})">저장</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if(ingCat!=='전체'){
+    el.innerHTML=list.map(i=>ingItemHTML(i)).join('');
   } else {
     const catMap={};
     list.forEach(i=>{const c=getIngCatName(i.name,i.category);if(!catMap[c])catMap[c]=[];catMap[c].push(i);});
@@ -500,17 +555,7 @@ function renderIngredients(){
     catsOrder.forEach(cat=>{
       if(!catMap[cat]||!catMap[cat].length)return;
       html+=`<div style="font-size:12px;font-weight:600;color:#888;margin:12px 0 6px">${catEmoji[cat]} ${cat}</div>`;
-      html+=catMap[cat].map(i=>{
-        const up=(i.buy_price/i.buy_qty).toFixed(2);
-        return `<div class="ingredient-item">
-          <span class="name">${i.name}</span>
-          <span class="info">${i.buy_qty.toLocaleString()}${i.unit} / ${i.buy_price.toLocaleString()}원
-            <span class="badge badge-blue" style="margin-left:4px">${up}원/${i.unit}</span>
-          </span>
-          <button class="btn btn-sm" onclick="toggleIngForm(${i.id})" style="margin-right:4px">수정</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteIngredient(${i.id})">삭제</button>
-        </div>`;
-      }).join('');
+      html+=catMap[cat].map(i=>ingItemHTML(i)).join('');
     });
     el.innerHTML=html;
   }
