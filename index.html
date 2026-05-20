@@ -406,6 +406,7 @@ async function login(){
   document.getElementById('main-app').style.display='block';
   document.getElementById('user-display').textContent='👤 '+currentUser.name;
   await loadAll();
+  showTab('calculator');
 }
 
 async function register(){
