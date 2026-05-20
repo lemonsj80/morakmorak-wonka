@@ -179,6 +179,24 @@ canvas{display:none}
         </div>
         <div class="form-row">
           <div class="form-group">
+            <label>카테고리</label>
+            <select id="ing-category">
+              <option value="가루">🌾 가루</option>
+              <option value="곡류">🌾 곡류</option>
+              <option value="당류">🍯 당류</option>
+              <option value="견과/씨앗">🥜 견과/씨앗</option>
+              <option value="유지">🧈 유지</option>
+              <option value="오일">🫙 오일</option>
+              <option value="앙금류">🟤 앙금류</option>
+              <option value="과일/채소">🥦 과일/채소</option>
+              <option value="한약재/향신료">🌿 한약재/향신료</option>
+              <option value="포장재">📦 포장재</option>
+              <option value="기타">📌 기타</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
             <label>구매 수량</label>
             <input id="ing-qty" type="number" placeholder="500" min="0" step="any">
           </div>
@@ -322,8 +340,8 @@ function toggleMenuSort(){
 
 const ING_CAT_MAP = {"찹쌀 가루": "가루", "찹쌀가루": "가루", "멥쌀가루": "가루", "중력분": "가루", "코코아 가루": "가루", "흑임자 가루": "가루", "흑임자가루": "가루", "흑임자 고물": "가루", "콩가루": "가루", "찐 콩가루": "가루", "볶은 콩가루": "가루", "찰흑미가루": "가루", "녹두전분": "가루", "분당": "당류", "슈가파우더": "가루", "아몬드 가루": "가루", "서리태 가루": "가루", "승검초 가루": "가루", "말차 가루": "가루", "황치즈 가루": "가루", "시나몬가루": "가루", "콩고물": "가루", "거피팥 고물": "가루", "팥고물": "가루", "땅콩분태": "가루", "땅콩 분태": "가루", "다진호박씨": "가루", "찹 쌀": "곡류", "현미": "곡류", "찜쌀백": "곡류", "쌀꼬부리": "곡류", "백설탕": "당류", "설탕": "당류", "설 탕": "당류", "흑설탕": "당류", "유기농 설탕": "당류", "비정제원당": "당류", "꿀": "당류", "조청": "당류", "조 청": "당류", "물엿": "당류", "물 엿": "당류", "올리고당": "당류", "유자청": "당류", "유자청 건지": "당류", "유자차 건지": "당류", "유자퓨레": "당류", "생강청": "당류", "통아몬드": "견과/씨앗", "아몬드": "견과/씨앗", "호두 (10개)": "견과/씨앗", "호 두": "견과/씨앗", "호두분태": "견과/씨앗", "호두강정": "견과/씨앗", "잣": "견과/씨앗", "잣 (15개)": "견과/씨앗", "호박씨": "견과/씨앗", "피스타치오": "견과/씨앗", "크랜베리": "견과/씨앗", "피 칸": "견과/씨앗", "캐슈넛": "견과/씨앗", "검정깨": "견과/씨앗", "참 깨": "견과/씨앗", "실 깨": "견과/씨앗", "들 깨": "견과/씨앗", "서리태": "견과/씨앗", "땅콩 (미국)": "견과/씨앗", "깐 밤": "견과/씨앗", "밤": "견과/씨앗", "삼색콩배기": "견과/씨앗", "완두배기": "견과/씨앗", "아몬드 강정": "견과/씨앗", "버 터": "유지", "버터": "유지", "무염버터": "유지", "생크림": "유지", "크림치즈": "유지", "참기름": "오일", "고운팥앙금": "앙금류", "춘설앙금": "앙금류", "찐 단호박": "과일/채소", "반건조무화과": "과일/채소", "올리브": "과일/채소", "곶 감": "과일/채소", "호박고지": "과일/채소", "대 추": "한약재/향신료", "대추": "한약재/향신료", "인삼(소) 1채": "한약재/향신료", "인 삼": "한약재/향신료", "깐생강": "한약재/향신료", "생강즙": "한약재/향신료", "생 강": "한약재/향신료", "통계피": "한약재/향신료", "건미삼": "한약재/향신료", "마른홍고추": "한약재/향신료", "다시마": "한약재/향신료", "통후추": "한약재/향신료", "오미자": "한약재/향신료", "봉 투": "포장재", "용기": "포장재", "케이스": "포장재", "상자": "포장재", "나무상자": "포장재", "나무도시락(대)": "포장재", "떡비닐": "포장재", "페트컵": "포장재", "실링봉투": "포장재", "낱개봉투": "포장재", "오동나무케이스": "포장재"};
 
-function getIngCatName(name){
-  return ING_CAT_MAP[name] || '기타';
+function getIngCatName(name, category){
+  return category || ING_CAT_MAP[name] || '기타';
 }
 
 function setIngCat(cat){
@@ -420,9 +438,11 @@ function toggleIngForm(id){
     document.getElementById('ing-unit').value=i.unit;
     document.getElementById('ing-qty').value=i.buy_qty;
     document.getElementById('ing-price').value=i.buy_price;
+    document.getElementById('ing-category').value=i.category||getIngCatName(i.name);
   } else if(show){
     document.getElementById('ing-form-title').textContent='새 재료 등록';
     ['ing-name','ing-qty','ing-price'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('ing-category').value='가루';
   } else {
     editIngId=null;
     document.getElementById('ing-form-title').textContent='새 재료 등록';
@@ -434,11 +454,12 @@ async function saveIngredient(){
   const unit=document.getElementById('ing-unit').value;
   const qty=parseFloat(document.getElementById('ing-qty').value);
   const price=parseFloat(document.getElementById('ing-price').value);
+  const category=document.getElementById('ing-category').value;
   if(!name||isNaN(qty)||isNaN(price)||qty<=0||price<=0){alert('모든 항목을 입력해주세요.');return;}
   if(editIngId){
-    await sb.from('ingredients').update({name,unit,buy_qty:qty,buy_price:price}).eq('id',editIngId);
+    await sb.from('ingredients').update({name,unit,buy_qty:qty,buy_price:price,category}).eq('id',editIngId);
   } else {
-    await sb.from('ingredients').insert({name,unit,buy_qty:qty,buy_price:price,created_by:currentUser.id});
+    await sb.from('ingredients').insert({name,unit,buy_qty:qty,buy_price:price,category,created_by:currentUser.id});
   }
   toggleIngForm();
   await loadIngredients();
@@ -453,7 +474,7 @@ async function deleteIngredient(id){
 function renderIngredients(){
   const el=document.getElementById('ingredient-list');
   const q=(document.getElementById('ing-search')?.value||'').toLowerCase();
-  let list=ingredients.filter(i=>i.name.toLowerCase().includes(q)&&(ingCat==='전체'||getIngCatName(i.name)===ingCat));
+  let list=ingredients.filter(i=>i.name.toLowerCase().includes(q)&&(ingCat==='전체'||getIngCatName(i.name,i.category)===ingCat));
   if(ingSort) list=[...list].sort((a,b)=>a.name.localeCompare(b.name,'ko'));
   if(!ingredients.length){el.innerHTML='<div class="empty">📦 등록된 재료가 없어요.<br>재료 추가 버튼을 눌러보세요!</div>';return;}
   if(!list.length){el.innerHTML='<div class="empty">🔍 검색 결과가 없어요.</div>';return;}
@@ -474,7 +495,7 @@ function renderIngredients(){
     }).join('');
   } else {
     const catMap={};
-    list.forEach(i=>{const c=getIngCatName(i.name);if(!catMap[c])catMap[c]=[];catMap[c].push(i);});
+    list.forEach(i=>{const c=getIngCatName(i.name,i.category);if(!catMap[c])catMap[c]=[];catMap[c].push(i);});
     let html='';
     catsOrder.forEach(cat=>{
       if(!catMap[cat]||!catMap[cat].length)return;
@@ -529,7 +550,7 @@ function buildIngOpts(filterText, selectedId){
   const catMap={};
   ingredients.forEach(i=>{
     if(filterText && !i.name.toLowerCase().includes(filterText.toLowerCase())) return;
-    const cat=getIngCatName(i.name);
+    const cat=getIngCatName(i.name,i.category);
     if(!catMap[cat]) catMap[cat]=[];
     catMap[cat].push(i);
   });
