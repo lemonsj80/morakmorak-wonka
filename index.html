@@ -351,30 +351,26 @@ function addInlineRecipeRow(menuId, existing){
   const container=document.getElementById('menu-edit-rows-'+menuId);
   const row=document.createElement('div');
   row.className='recipe-row';
-  row.style.cssText='flex-direction:column;align-items:stretch;background:#f9f9f7;border-radius:8px;padding:10px;margin-bottom:8px';
+  row.style.cssText='flex-direction:column;align-items:stretch;margin-bottom:8px';
   const existingIngId=existing?existing.ingId:null;
   const existingIng=existingIngId?ingredients.find(i=>i.id===existingIngId):null;
   const unit=existingIng?existingIng.unit:ingredients[0]?.unit||'';
   const rowId='irow_'+menuId+'_'+Date.now()+'_'+Math.random().toString(36).slice(2);
   row.innerHTML=`
-    <div style="display:flex;gap:6px;align-items:flex-start">
-      <div style="flex:1;min-width:0">
-        <input type="text" id="search_${rowId}" placeholder="🔍 재료 검색..." autocomplete="off"
-          style="width:100%;padding:8px 10px;font-size:14px;border:1px solid #e0e0de;border-radius:8px;background:#fff;margin-bottom:4px"
-          oninput="filterIngList('${rowId}')"
-          value="${existingIng?existingIng.name:''}"
-        >
-        <div id="list_${rowId}" style="display:${existingIng?'none':'block'};max-height:180px;overflow-y:auto;background:#fff;border:1px solid #e0e0de;border-radius:8px">
-          ${buildIngListHTML(rowId, '')}
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:center;padding-top:2px">
-        <input type="number" placeholder="분량" min="0" step="any" value="${existing?existing.qty:''}"
-          style="width:70px;padding:8px 6px;font-size:14px;border:1px solid #e0e0de;border-radius:8px;text-align:center">
-        <span class="unit" style="font-size:12px;color:#888">${unit}</span>
-      </div>
+    <div style="display:flex;gap:6px;align-items:center;background:#f9f9f7;border-radius:8px;padding:8px">
+      <input type="text" id="search_${rowId}" placeholder="🔍 재료 검색..." autocomplete="off"
+        style="flex:2;min-width:0;padding:7px 8px;font-size:13px;border:1px solid #e0e0de;border-radius:6px;background:#fff"
+        oninput="filterIngList('${rowId}')"
+        value="${existingIng?existingIng.name:''}"
+      >
+      <input type="number" placeholder="분량" min="0" step="any" value="${existing?existing.qty:''}"
+        style="width:60px;padding:7px 6px;font-size:13px;border:1px solid #e0e0de;border-radius:6px;text-align:center">
+      <span class="unit" style="font-size:12px;color:#888;min-width:16px">${unit}</span>
       <input type="hidden" class="recipe-ing-id" value="${existingIngId||''}">
-      <button class="btn btn-sm btn-danger" onclick="this.closest('.recipe-row').remove()" style="padding:8px;margin-top:2px">✕</button>
+      <button class="btn btn-sm btn-danger" onclick="this.closest('.recipe-row').remove()" style="padding:6px 8px;flex-shrink:0">✕</button>
+    </div>
+    <div id="list_${rowId}" style="display:${existingIng?'none':'block'};max-height:180px;overflow-y:auto;background:#fff;border:1px solid #e0e0de;border-radius:8px;margin-top:4px">
+      ${buildIngListHTML(rowId, '')}
     </div>`;
   container.appendChild(row);
 }
@@ -712,30 +708,26 @@ function buildIngOpts(filterText, selectedId){
 
 function addRecipeRow(existing){
   const row=document.createElement('div');row.className='recipe-row';
-  row.style.cssText='flex-direction:column;align-items:stretch;background:#f9f9f7;border-radius:8px;padding:10px;margin-bottom:8px';
+  row.style.cssText='flex-direction:column;align-items:stretch;margin-bottom:8px';
   const existingIngId=existing?existing.ingId:null;
   const existingIng=existingIngId?ingredients.find(i=>i.id===existingIngId):null;
   const unit=existingIng?existingIng.unit:ingredients[0]?.unit||'';
   const rowId='row_'+Date.now()+'_'+Math.random().toString(36).slice(2);
   row.innerHTML=`
-    <div style="display:flex;gap:6px;align-items:flex-start">
-      <div style="flex:1;min-width:0">
-        <input type="text" id="search_${rowId}" placeholder="🔍 재료 검색..." autocomplete="off"
-          style="width:100%;padding:8px 10px;font-size:14px;border:1px solid #e0e0de;border-radius:8px;background:#fff;margin-bottom:4px"
-          oninput="filterIngList('${rowId}')"
-          value="${existingIng?existingIng.name:''}"
-        >
-        <div id="list_${rowId}" style="display:${existingIng?'none':'block'};max-height:180px;overflow-y:auto;background:#fff;border:1px solid #e0e0de;border-radius:8px">
-          ${buildIngListHTML(rowId, '')}
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;align-items:center;padding-top:2px">
-        <input type="number" placeholder="분량" min="0" step="any" value="${existing?existing.qty:''}"
-          style="width:70px;padding:8px 6px;font-size:14px;border:1px solid #e0e0de;border-radius:8px;text-align:center">
-        <span class="unit" style="font-size:12px;color:#888">${unit}</span>
-      </div>
+    <div style="display:flex;gap:6px;align-items:center;background:#f9f9f7;border-radius:8px;padding:8px">
+      <input type="text" id="search_${rowId}" placeholder="🔍 재료 검색..." autocomplete="off"
+        style="flex:2;min-width:0;padding:7px 8px;font-size:13px;border:1px solid #e0e0de;border-radius:6px;background:#fff"
+        oninput="filterIngList('${rowId}')"
+        value="${existingIng?existingIng.name:''}"
+      >
+      <input type="number" placeholder="분량" min="0" step="any" value="${existing?existing.qty:''}"
+        style="width:60px;padding:7px 6px;font-size:13px;border:1px solid #e0e0de;border-radius:6px;text-align:center">
+      <span class="unit" style="font-size:12px;color:#888;min-width:16px">${unit}</span>
       <input type="hidden" class="recipe-ing-id" value="${existingIngId||''}">
-      <button class="btn btn-sm btn-danger" onclick="this.closest('.recipe-row').remove()" style="padding:8px;margin-top:2px">✕</button>
+      <button class="btn btn-sm btn-danger" onclick="this.closest('.recipe-row').remove()" style="padding:6px 8px;flex-shrink:0">✕</button>
+    </div>
+    <div id="list_${rowId}" style="display:${existingIng?'none':'block'};max-height:180px;overflow-y:auto;background:#fff;border:1px solid #e0e0de;border-radius:8px;margin-top:4px">
+      ${buildIngListHTML(rowId, '')}
     </div>`;
   document.getElementById('recipe-rows').appendChild(row);
 }
