@@ -264,6 +264,10 @@ canvas{display:none}
             <input id="menu-price" type="number" placeholder="예: 3500" min="0">
           </div>
         </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>특이사항 (메모)</label>
+          <textarea id="menu-memo" placeholder="예) 100g 기준 5개, 계절 메뉴 등" style="width:100%;padding:9px 12px;font-size:13px;border:1px solid #e0e0de;border-radius:8px;resize:vertical;min-height:60px;font-family:inherit"></textarea>
+        </div>
         <div style="display:flex;gap:8px;justify-content:flex-end">
           <button class="btn btn-sm" onclick="closeMenuForm()">취소</button>
           <button class="btn btn-primary btn-sm" onclick="saveMenu()">저장</button>
@@ -366,8 +370,9 @@ async function saveInlineMenu(id){
   const category=document.getElementById('menu-edit-cat-'+id).value;
   const default_count=parseFloat(document.getElementById('menu-edit-count-'+id).value)||0;
   const default_price=parseFloat(document.getElementById('menu-edit-price-'+id).value)||0;
+  const memo=(document.getElementById('menu-edit-memo-'+id)?.value||'').trim();
   if(!name){alert('메뉴명을 입력해주세요.');return;}
-  await sb.from('menus').update({name,category,default_count,default_price}).eq('id',id);
+  await sb.from('menus').update({name,category,default_count,default_price,memo}).eq('id',id);
   // 재료 분량 업데이트
   const menu=menus.find(m=>m.id===id);
   if(menu){
@@ -623,6 +628,7 @@ function openMenuForm(id){
   document.getElementById('menu-category').value=menu?.category||'떡';
   document.getElementById('menu-count').value=menu?.default_count||'';
   document.getElementById('menu-price').value=menu?.default_price||'';
+  document.getElementById('menu-memo').value=menu?.memo||'';
   document.getElementById('recipe-rows').innerHTML='';
   if(menu&&menu.recipe.length) menu.recipe.forEach(r=>addRecipeRow(r));
   else addRecipeRow();
@@ -719,10 +725,10 @@ async function saveMenu(){
 
   let menuId=editMenuId;
   if(editMenuId){
-    await sb.from('menus').update({name,category,default_count,default_price}).eq('id',editMenuId);
+    await sb.from('menus').update({name,category,default_count,default_price,memo}).eq('id',editMenuId);
     await sb.from('menu_recipes').delete().eq('menu_id',editMenuId);
   } else {
-    const {data}=await sb.from('menus').insert({name,category,default_count,default_price,created_by:currentUser.id}).select().single();
+    const {data}=await sb.from('menus').insert({name,category,default_count,default_price,memo,created_by:currentUser.id}).select().single();
     menuId=data.id;
   }
   await sb.from('menu_recipes').insert(recipe.map(r=>({menu_id:menuId,ingredient_id:r.ingId,qty:r.qty})));
@@ -770,6 +776,7 @@ function renderMenus(){
     return `<div class="menu-item" id="menu-item-${m.id}" style="flex-direction:column;align-items:stretch;cursor:default">
       <div style="display:flex;align-items:center;gap:6px">
         <span style="font-weight:600;flex:1">${m.name}</span>
+        ${m.memo?`<span style="font-size:11px;color:#aaa;margin-right:4px">📝 ${m.memo}</span>`:''}
         <span style="font-size:11px;background:#f0f0ee;color:#888;padding:2px 8px;border-radius:20px">${catEmoji[m.category||'떡']} ${m.category||'떡'}</span>
         ${isMine?'<span class="mine-badge">내 메뉴</span>':'<span class="others-badge">👀 보기만</span>'}
         <span style="color:#aaa;font-size:12px">${Math.round(menuCost(m)).toLocaleString()}원</span>
@@ -799,6 +806,10 @@ function renderMenus(){
             <label>실제 판매가 (원/개)</label>
             <input id="menu-edit-price-${m.id}" type="number" value="${m.default_price||''}" min="0">
           </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="font-size:12px;color:#888;font-weight:500;display:block;margin-bottom:4px">특이사항 (메모)</label>
+          <textarea id="menu-edit-memo-${m.id}" placeholder="예) 100g 기준 5개" style="width:100%;padding:9px 12px;font-size:13px;border:1px solid #e0e0de;border-radius:8px;resize:vertical;min-height:50px;font-family:inherit">${m.memo||''}</textarea>
         </div>
         <div style="display:flex;gap:8px;justify-content:flex-end">
           <button class="btn btn-sm" onclick="toggleInlineMenuForm(${m.id})">취소</button>
