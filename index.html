@@ -59,7 +59,7 @@ input:focus,select:focus{border-color:#1a1a1a}
 .cat-btn:hover:not(.active){background:#f5f5f3}
 .result-block{background:#f9f9f7;border-radius:12px;padding:16px;margin-top:12px}
 .result-title{font-size:12px;color:#888;margin-bottom:10px;font-weight:600;letter-spacing:.5px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}@media(min-width:500px){.grid3{grid-template-columns:repeat(4,1fr)}}
 .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px}
 .mine-badge{font-size:10px;background:#e6f1fb;color:#185fa5;padding:2px 6px;border-radius:10px;font-weight:600}
@@ -913,7 +913,7 @@ function recalc(){
   const sug=document.getElementById('calc-suggest');
   if(count>0){
     sug.innerHTML=`<div class="result-block"><div class="result-title">권장 판매가 (원가율별)</div>
-      <div class="grid3">${[20,25,30].map(r=>{
+      <div class="grid3">${[20,25,30,35].map(r=>{
         const sp=Math.round(perCost/(r/100)),pf=sp-Math.round(perCost);
         return `<div class="stat-card"><div class="stat-label">원가율 ${r}%</div><div class="stat-value green">${sp.toLocaleString()}원</div><div style="font-size:11px;color:#888;margin-top:2px">순이익 ${pf.toLocaleString()}원</div></div>`;
       }).join('')}</div></div>`;
@@ -922,7 +922,7 @@ function recalc(){
   if(count>0&&price>0){
     const cr=((perCost/price)*100).toFixed(1),pf=price-Math.round(perCost);
     act.style.display='block';
-    act.innerHTML=`<div class="result-block"><div class="result-title">실제 판매가 분석 — ${price.toLocaleString()}원/개</div>
+    act.innerHTML=`<div class="result-block" style="background:#e8f4fd;border:1.5px solid #185fa5"><div style="font-size:14px;font-weight:700;color:#185fa5;margin-bottom:10px">💰 실제 판매가 분석 — ${price.toLocaleString()}원/개</div>
       <div class="grid2">
         <div class="stat-card"><div class="stat-label">실제 원가율</div><div class="stat-value ${parseFloat(cr)<=25?'green':'amber'}">${cr}%</div></div>
         <div class="stat-card"><div class="stat-label">개당 순이익</div><div class="stat-value ${pf>=0?'green':'red'}">${pf.toLocaleString()}원</div></div>
@@ -942,7 +942,7 @@ function exportImage(){
   const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
   const pad=28;let y=0;
   let h=110+rows.length*34+80;
-  if(count>0)h+=170;if(count>0&&price>0)h+=150;
+  if(count>0)h+=240;if(count>0&&price>0)h+=204;
   cv.width=600;cv.height=h+40;
   ctx.fillStyle='#fff';ctx.fillRect(0,0,600,cv.height);
   y=44;ctx.fillStyle='#1a1a1a';ctx.font='700 22px system-ui';ctx.fillText(menu.name,pad,y);
@@ -950,42 +950,93 @@ function exportImage(){
   y+=20;ctx.font='400 12px system-ui';ctx.fillStyle='#aaa';ctx.fillText(new Date().toLocaleDateString('ko-KR'),pad,y);
   y+=18;ctx.strokeStyle='#e5e5e3';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(572,y);ctx.stroke();
   y+=24;ctx.font='600 12px system-ui';ctx.fillStyle='#888';
-  ['재료','분량','단가','금액'].forEach((t,i)=>ctx.fillText(t,[pad,220,330,460][i],y));
+  ctx.textAlign='left'; ctx.fillText('재료',pad,y);
+  ctx.textAlign='right';
+  ctx.fillText('분량',290,y);
+  ctx.fillText('단가',400,y);
+  ctx.fillText('금액',572,y);
+  ctx.textAlign='left';
   y+=10;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(572,y);ctx.stroke();
   rows.forEach((r,idx)=>{
     const ing=ingredients.find(i=>i.id===r.ingId);if(!ing)return;
     y+=28;ctx.font='400 13px system-ui';ctx.fillStyle='#1a1a1a';
-    ctx.fillText(ing.name,pad,y);ctx.fillText(r.qty+ing.unit,220,y);
-    ctx.fillText((ing.buy_price/ing.buy_qty).toFixed(2)+'원/'+ing.unit,330,y);
-    ctx.fillText(Math.round((ing.buy_price/ing.buy_qty)*r.qty).toLocaleString()+'원',460,y);
+    ctx.textAlign='left'; ctx.fillText(ing.name,pad,y);
+    ctx.textAlign='right';
+    ctx.fillText(r.qty+ing.unit,290,y);
+    ctx.fillText((ing.buy_price/ing.buy_qty).toFixed(2)+'원/'+ing.unit,400,y);
+    ctx.fillText(Math.round((ing.buy_price/ing.buy_qty)*r.qty).toLocaleString()+'원',572,y);
+    ctx.textAlign='left';
     if(idx<rows.length-1){ctx.strokeStyle='#f5f5f3';ctx.beginPath();ctx.moveTo(pad,y+8);ctx.lineTo(572,y+8);ctx.stroke();}
   });
   y+=16;ctx.strokeStyle='#ccc';ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(572,y);ctx.stroke();
   y+=24;ctx.font='700 14px system-ui';ctx.fillStyle='#185fa5';
-  ctx.fillText('총 원재료비',pad,y);ctx.fillText(Math.round(total).toLocaleString()+'원',460,y);
+  ctx.fillText('총 원재료비',pad,y);ctx.textAlign='right';ctx.fillText(Math.round(total).toLocaleString()+'원',572,y);ctx.textAlign='left';
   if(count>0){
-    y+=32;ctx.fillStyle='#f9f9f7';ctx.beginPath();ctx.roundRect(pad,y-18,544,150,8);ctx.fill();
-    ctx.font='500 13px system-ui';ctx.fillStyle='#555';
-    ctx.fillText('생산 개수',pad+12,y);ctx.fillText(count+'개',460,y);
-    y+=30;ctx.fillText('개당 원가',pad+12,y);ctx.fillStyle='#854f0b';ctx.fillText(Math.round(perCost).toLocaleString()+'원',460,y);
-    [20,25,30].forEach(r=>{
-      y+=30;ctx.fillStyle='#555';ctx.fillText('권장 판매가 (원가율 '+r+'%)',pad+12,y);
+    // 블록1: 총원재료비 / 생산개수 / 개당원가 (3칸 가로)
+    y+=24;
+    const bw=(544-16)/3; // 3칸 너비
+    const bh=70;
+    const bx=[pad, pad+bw+8, pad+(bw+8)*2];
+    const labels=['총 원재료비','생산 개수','개당 원가'];
+    const vals=[Math.round(total).toLocaleString()+'원', count+'개', Math.round(perCost).toLocaleString()+'원'];
+    const colors=['#185fa5','#1a1a1a','#854f0b'];
+    for(let i=0;i<3;i++){
+      ctx.fillStyle='#f9f9f7';ctx.beginPath();ctx.roundRect(bx[i],y,bw,bh,8);ctx.fill();
+      ctx.font='500 11px system-ui';ctx.fillStyle='#888';ctx.textAlign='center';
+      ctx.fillText(labels[i],bx[i]+bw/2,y+22);
+      ctx.font='700 16px system-ui';ctx.fillStyle=colors[i];
+      ctx.fillText(vals[i],bx[i]+bw/2,y+50);
+    }
+    ctx.textAlign='left';
+    y+=bh+16;
+
+    // 블록2: 권장 판매가 (4칸 가로)
+    const cw=(544-24)/4;
+    const cx=[pad, pad+cw+8, pad+(cw+8)*2, pad+(cw+8)*3];
+    ctx.font='600 12px system-ui';ctx.fillStyle='#555';ctx.fillText('권장 판매가 (원가율별)',pad,y);
+    y+=14;
+    [20,25,30,35].forEach((r,i)=>{
       const sp=Math.round(perCost/(r/100));
-      ctx.fillStyle='#0f6e56';ctx.fillText(sp.toLocaleString()+'원  순이익 '+(sp-Math.round(perCost)).toLocaleString()+'원',310,y);
+      const pf2=sp-Math.round(perCost);
+      ctx.fillStyle='#f0fff4';ctx.beginPath();ctx.roundRect(cx[i],y,cw,68,8);ctx.fill();
+      ctx.font='500 11px system-ui';ctx.fillStyle='#888';ctx.textAlign='center';
+      ctx.fillText('원가율 '+r+'%',cx[i]+cw/2,y+18);
+      ctx.font='700 15px system-ui';ctx.fillStyle='#0f6e56';
+      ctx.fillText(sp.toLocaleString()+'원',cx[i]+cw/2,y+42);
+      ctx.font='400 11px system-ui';ctx.fillStyle='#aaa';
+      ctx.fillText('순이익 '+pf2.toLocaleString()+'원',cx[i]+cw/2,y+60);
     });
+    ctx.textAlign='left';
+    y+=68+16;
   }
   if(count>0&&price>0){
-    y+=32;ctx.fillStyle='#f0f5ff';ctx.beginPath();ctx.roundRect(pad,y-18,544,130,8);ctx.fill();
-    ctx.font='500 13px system-ui';
-    ctx.fillStyle='#555';ctx.fillText('실제 판매가',pad+12,y);ctx.fillStyle='#185fa5';ctx.fillText(price.toLocaleString()+'원/개',460,y);
-    y+=30;const cr=((perCost/price)*100).toFixed(1);
-    ctx.fillStyle='#555';ctx.fillText('원가율',pad+12,y);
-    ctx.fillStyle=parseFloat(cr)<=25?'#0f6e56':'#854f0b';ctx.fillText(cr+'%',460,y);
-    y+=30;const pf=price-Math.round(perCost);
-    ctx.fillStyle='#555';ctx.fillText('개당 순이익',pad+12,y);
-    ctx.fillStyle=pf>=0?'#0f6e56':'#a32d2d';ctx.fillText(pf.toLocaleString()+'원',460,y);
-    y+=30;ctx.fillStyle='#555';ctx.fillText('총 순이익 ('+count+'개)',pad+12,y);
-    const tp=pf*count;ctx.fillStyle=tp>=0?'#0f6e56':'#a32d2d';ctx.fillText(tp.toLocaleString()+'원',460,y);
+    // 블록3: 실제 판매가 분석 (파란 박스, 크게)
+    const pf=price-Math.round(perCost);
+    const cr=((perCost/price)*100).toFixed(1);
+    const tp=pf*count;
+    const bh2=174;
+    ctx.fillStyle='#e8f4fd';ctx.beginPath();ctx.roundRect(pad,y,544,bh2,10);ctx.fill();
+    ctx.strokeStyle='#185fa5';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(pad,y,544,bh2,10);ctx.stroke();
+    ctx.font='700 14px system-ui';ctx.fillStyle='#185fa5';
+    ctx.fillText('💰 실제 판매가 분석  —  '+price.toLocaleString()+'원/개',pad+16,y+26);
+    // 4칸 그리드
+    const iw=(544-40)/2;
+    const ix=[pad+12, pad+12+iw+16];
+    const iy=[y+44, y+44+64];
+    const ilabels=[['실제 원가율','개당 순이익'],['총 순이익 ('+count+'개)','총 매출']];
+    const ivals=[[cr+'%', pf.toLocaleString()+'원'],[(tp).toLocaleString()+'원',(price*count).toLocaleString()+'원']];
+    const icolors=[[parseFloat(cr)<=25?'#0f6e56':'#854f0b', pf>=0?'#0f6e56':'#a32d2d'],[tp>=0?'#0f6e56':'#a32d2d','#185fa5']];
+    for(let row=0;row<2;row++){
+      for(let col=0;col<2;col++){
+        ctx.fillStyle='rgba(255,255,255,0.6)';ctx.beginPath();ctx.roundRect(ix[col],iy[row],iw,52,6);ctx.fill();
+        ctx.font='500 11px system-ui';ctx.fillStyle='#888';ctx.textAlign='center';
+        ctx.fillText(ilabels[row][col],ix[col]+iw/2,iy[row]+18);
+        ctx.font='700 17px system-ui';ctx.fillStyle=icolors[row][col];
+        ctx.fillText(ivals[row][col],ix[col]+iw/2,iy[row]+42);
+      }
+    }
+    ctx.textAlign='left';
+    y+=bh2+16;
   }
   const a=document.createElement('a');a.download=menu.name+'_원가계산서.png';a.href=cv.toDataURL('image/png');a.click();
 }
