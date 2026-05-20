@@ -344,6 +344,33 @@ function toggleInlineIngForm(id){
   form.style.display=form.style.display==='none'?'block':'none';
 }
 
+function addInlineRecipeRow(menuId, existing){
+  const container=document.getElementById('menu-edit-rows-'+menuId);
+  const row=document.createElement('div');
+  row.className='recipe-row';
+  const existingIngId=existing?existing.ingId:null;
+  const unit=existing?getIngUnit(existing.ingId):ingredients[0]?.unit||'';
+  row.innerHTML=`
+    <div style="flex:2;min-width:120px;position:relative">
+      <input type="text" class="recipe-ing-search" placeholder="🔍 재료 검색..." autocomplete="off"
+        style="width:100%;padding:7px 10px;font-size:13px;border:1px solid #e0e0de;border-radius:8px;background:#fff"
+        oninput="filterIngSelect(this)"
+        onfocus="this.nextElementSibling.style.display='block'"
+        onblur="setTimeout(()=>{this.nextElementSibling.style.display='none'},200)"
+        value="${existing?ingredients.find(i=>i.id===existingIngId)?.name||'':''}"
+      >
+      <select class="recipe-ing-select" size="6"
+        style="display:none;position:absolute;top:100%;left:0;width:100%;z-index:100;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:200px;overflow-y:auto;font-size:13px"
+        onchange="selectIngFromDropdown(this)"
+      >${buildIngOpts('', existingIngId)}</select>
+    </div>
+    <input type="number" placeholder="분량" min="0" step="any" value="${existing?existing.qty:''}" style="flex:1;min-width:60px">
+    <span class="unit" style="font-size:12px;color:#888;min-width:28px">${unit}</span>
+    <input type="hidden" class="recipe-ing-id" value="${existingIngId||''}">
+    <button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(row);
+}
+
 async function saveInlineIng(id){
   const name=document.getElementById('ing-edit-name-'+id).value.trim();
   const unit=document.getElementById('ing-edit-unit-'+id).value;
@@ -362,7 +389,21 @@ function toggleIngSort(){
 }
 function toggleInlineMenuForm(id){
   const form=document.getElementById('menu-inline-form-'+id);
-  form.style.display=form.style.display==='none'?'block':'none';
+  const isOpening=form.style.display==='none';
+  form.style.display=isOpening?'block':'none';
+  if(isOpening){
+    // 재료 행 초기화
+    const container=document.getElementById('menu-edit-rows-'+id);
+    container.innerHTML='';
+    const menu=menus.find(m=>m.id===id);
+    if(menu&&menu.recipe.length){
+      menu.recipe.forEach(r=>{
+        if(ingredients.find(i=>i.id===r.ingId)) addInlineRecipeRow(id,r);
+      });
+    } else {
+      addInlineRecipeRow(id);
+    }
+  }
 }
 
 async function saveInlineMenu(id){
@@ -373,21 +414,19 @@ async function saveInlineMenu(id){
   const memo=(document.getElementById('menu-edit-memo-'+id)?.value||'').trim();
   if(!name){alert('메뉴명을 입력해주세요.');return;}
   await sb.from('menus').update({name,category,default_count,default_price,memo}).eq('id',id);
-  // 재료 분량 업데이트
-  const menu=menus.find(m=>m.id===id);
-  if(menu){
-    const validRecipe=menu.recipe.filter(r=>ingredients.find(i=>i.id===r.ingId));
-    for(let ri=0;ri<validRecipe.length;ri++){
-      const qtyEl=document.getElementById('menu-edit-qty-'+id+'-'+ri);
-      const ingIdEl=document.getElementById('menu-edit-ingid-'+id+'-'+ri);
-      if(qtyEl&&ingIdEl){
-        const qty=parseFloat(qtyEl.value);
-        const ingId=parseInt(ingIdEl.value);
-        if(!isNaN(qty)&&qty>0){
-          await sb.from('menu_recipes').update({qty}).eq('menu_id',id).eq('ingredient_id',ingId);
-        }
-      }
-    }
+  // 재료 전체 교체
+  const rows=document.querySelectorAll('#menu-edit-rows-'+id+' .recipe-row');
+  const newRecipe=[];
+  rows.forEach(row=>{
+    const hiddenId=row.querySelector('.recipe-ing-id');
+    const ingId=hiddenId?parseInt(hiddenId.value):null;
+    const qtyInput=row.querySelectorAll('input[type="number"]')[0];
+    const qty=parseFloat(qtyInput?.value);
+    if(ingId&&!isNaN(qty)&&qty>0) newRecipe.push({menu_id:id,ingredient_id:ingId,qty});
+  });
+  if(newRecipe.length){
+    await sb.from('menu_recipes').delete().eq('menu_id',id);
+    await sb.from('menu_recipes').insert(newRecipe);
   }
   await loadMenus();
 }
@@ -761,17 +800,6 @@ function renderMenus(){
   el.innerHTML=filtered.map(m=>{
     const isMine=m.created_by===currentUser.id;
     const catOpts=['떡','한과','퓨전','화과자','양갱'].map(c=>`<option value="${c}" ${(m.category||'떡')===c?'selected':''}>${catEmoji[c]||''} ${c}</option>`).join('');
-    const recipeRows=m.recipe.map((r,ri)=>{
-      const ing=ingredients.find(i=>i.id===r.ingId);
-      if(!ing) return '';
-      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="flex:2;font-size:13px;color:#555">${ing.name}</span>
-        <input type="number" id="menu-edit-qty-${m.id}-${ri}" value="${r.qty}" min="0" step="any"
-          style="width:80px;padding:5px 8px;font-size:13px;border:1px solid #e0e0de;border-radius:6px">
-        <span style="font-size:12px;color:#888;min-width:20px">${ing.unit}</span>
-        <input type="hidden" id="menu-edit-ingid-${m.id}-${ri}" value="${r.ingId}">
-      </div>`;
-    }).join('');
     const recipeCount=m.recipe.filter(r=>ingredients.find(i=>i.id===r.ingId)).length;
     return `<div class="menu-item" id="menu-item-${m.id}" style="flex-direction:column;align-items:stretch;cursor:default">
       <div style="display:flex;align-items:center;gap:6px">
@@ -795,7 +823,8 @@ function renderMenus(){
           </div>
         </div>
         <div style="font-size:12px;font-weight:600;color:#888;margin-bottom:8px">사용 재료</div>
-        <div id="menu-edit-rows-${m.id}">${recipeRows}</div>
+        <div id="menu-edit-rows-${m.id}"></div>
+        <button class="btn btn-sm" onclick="addInlineRecipeRow(${m.id})" style="margin-bottom:12px">+ 재료 추가</button>
 
         <div class="form-row">
           <div class="form-group">
