@@ -359,12 +359,13 @@ function addInlineRecipeRow(menuId, existing){
         style="width:100%;padding:7px 10px;font-size:13px;border:1px solid #e0e0de;border-radius:8px;background:#fff"
         oninput="filterIngSelect(this)"
         onfocus="this.nextElementSibling.style.display='block'"
-        onblur="setTimeout(()=>{this.nextElementSibling.style.display='none'},200)"
+        onblur="setTimeout(()=>{this.nextElementSibling.style.display='none'},400)"
         value="${existing?ingredients.find(i=>i.id===existingIngId)?.name||'':''}"
       >
-      <select class="recipe-ing-select" size="6"
-        style="display:none;position:absolute;top:100%;left:0;width:100%;z-index:100;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:200px;overflow-y:auto;font-size:13px"
+      <select class="recipe-ing-select" size="8"
+        style="display:none;position:absolute;top:100%;left:0;width:100%;z-index:100;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:240px;overflow-y:auto;font-size:14px"
         onchange="selectIngFromDropdown(this)"
+        ontouchstart="event.stopPropagation()"
       >${buildIngOpts('', existingIngId)}</select>
     </div>
     <input type="number" placeholder="분량" min="0" step="any" value="${existing?existing.qty:''}" style="flex:1;min-width:60px">
@@ -716,12 +717,13 @@ function addRecipeRow(existing){
         style="width:100%;padding:7px 10px;font-size:13px;border:1px solid #e0e0de;border-radius:8px;background:#fff"
         oninput="filterIngSelect(this)"
         onfocus="this.nextElementSibling.style.display='block'"
-        onblur="setTimeout(()=>{this.nextElementSibling.style.display='none'},200)"
+        onblur="setTimeout(()=>{this.nextElementSibling.style.display='none'},400)"
         value="${existing?ingredients.find(i=>i.id===existingIngId)?.name||'':''}"
       >
-      <select class="recipe-ing-select" size="6"
-        style="display:none;position:absolute;top:100%;left:0;width:100%;z-index:100;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:200px;overflow-y:auto;font-size:13px"
+      <select class="recipe-ing-select" size="8"
+        style="display:none;position:absolute;top:100%;left:0;width:100%;z-index:100;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:240px;overflow-y:auto;font-size:14px"
         onchange="selectIngFromDropdown(this)"
+        ontouchstart="event.stopPropagation()"
       >${buildIngOpts('', existingIngId)}</select>
     </div>
     <input type="number" placeholder="분량" min="0" step="any" value="${existing?existing.qty:''}" style="flex:1;min-width:60px">
